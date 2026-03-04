@@ -13,4 +13,8 @@
   --color-axiom-text: #E8E4DF;
   --color-axiom-muted: #7A7570;
   --color-axiom-error: #E74C3C;
+
+  --font-sans: "Inter", sans-serif;
+  --font-serif: "Playfair Display", serif;
+  --font-mono: "JetBrains Mono", monospace;
 }
