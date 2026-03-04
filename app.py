@@ -14,6 +14,7 @@ from datetime import datetime
 import anthropic
 import pdfplumber
 from flask import Flask, request, jsonify, send_file, send_from_directory, Response
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB max upload
@@ -175,14 +176,14 @@ def extract():
         return jsonify({"error": "Only PDF files are supported"}), 400
 
     # Save temp file
-    pdf_path = os.path.join(UPLOAD_DIR, file.filename)
+    pdf_path = os.path.join(UPLOAD_DIR, secure_filename(file.filename))
     file.save(pdf_path)
 
     try:
         # Extract text
         text = extract_text_from_pdf(pdf_path)
         if not text.strip():
-            return jsonify({"error": "Could not extract text from PDF. It may be a scanned image — OCR not yet supported."})
+            return jsonify({"error": "Could not extract text from PDF. It may be a scanned image — OCR not yet supported."}), 422
 
         # Extract structured data
         invoice = extract_invoice_data(text)
@@ -193,11 +194,11 @@ def extract():
         return jsonify({"invoice": invoice, "csv": csv_str})
 
     except json.JSONDecodeError:
-        return jsonify({"error": "Claude returned invalid JSON. Try again or use a clearer invoice."})
+        return jsonify({"error": "Claude returned invalid JSON. Try again or use a clearer invoice."}), 502
     except anthropic.APIError as e:
-        return jsonify({"error": f"Anthropic API error: {str(e)}"})
+        return jsonify({"error": f"Anthropic API error: {str(e)}"}), 502
     except Exception as e:
-        return jsonify({"error": f"Processing failed: {str(e)}"})
+        return jsonify({"error": f"Processing failed: {str(e)}"}), 500
     finally:
         # Cleanup
         if os.path.exists(pdf_path):
@@ -215,15 +216,15 @@ def extract_batch():
         total = len(files)
         for idx, file in enumerate(files):
             if not file.filename.lower().endswith(".pdf"):
-                yield f"data: {json.dumps({'index': idx, 'filename': file.filename, 'error': 'Not a PDF file'})}\n\n"
+                yield f"data: {json.dumps({'index': idx, 'filename': file.filename, 'error': 'Not a PDF file', 'total': total})}\n\n"
                 continue
 
-            pdf_path = os.path.join(UPLOAD_DIR, file.filename)
+            pdf_path = os.path.join(UPLOAD_DIR, secure_filename(file.filename))
             file.save(pdf_path)
             try:
                 text = extract_text_from_pdf(pdf_path)
                 if not text.strip():
-                    yield f"data: {json.dumps({'index': idx, 'filename': file.filename, 'error': 'Could not extract text from PDF'})}\n\n"
+                    yield f"data: {json.dumps({'index': idx, 'filename': file.filename, 'error': 'Could not extract text from PDF', 'total': total})}\n\n"
                     continue
 
                 invoice = extract_invoice_data(text)
@@ -231,18 +232,22 @@ def extract_batch():
                 yield f"data: {json.dumps({'index': idx, 'filename': file.filename, 'invoice': invoice, 'csv': csv_str, 'total': total})}\n\n"
 
             except json.JSONDecodeError:
-                yield f"data: {json.dumps({'index': idx, 'filename': file.filename, 'error': 'Claude returned invalid JSON'})}\n\n"
+                yield f"data: {json.dumps({'index': idx, 'filename': file.filename, 'error': 'Claude returned invalid JSON', 'total': total})}\n\n"
             except anthropic.APIError as e:
-                yield f"data: {json.dumps({'index': idx, 'filename': file.filename, 'error': f'API error: {str(e)}'})}\n\n"
+                yield f"data: {json.dumps({'index': idx, 'filename': file.filename, 'error': f'API error: {str(e)}', 'total': total})}\n\n"
             except Exception as e:
-                yield f"data: {json.dumps({'index': idx, 'filename': file.filename, 'error': f'Processing failed: {str(e)}'})}\n\n"
+                yield f"data: {json.dumps({'index': idx, 'filename': file.filename, 'error': f'Processing failed: {str(e)}', 'total': total})}\n\n"
             finally:
                 if os.path.exists(pdf_path):
                     os.remove(pdf_path)
 
         yield "data: {\"done\": true}\n\n"
 
-    return Response(generate(), mimetype="text/event-stream")
+    return Response(
+        generate(),
+        mimetype="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 if __name__ == "__main__":
