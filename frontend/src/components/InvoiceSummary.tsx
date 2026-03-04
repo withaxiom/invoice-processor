@@ -52,7 +52,11 @@ function EditableField({
 
 export function InvoiceSummary({ invoice, onUpdate }: InvoiceSummaryProps) {
   function update(field: keyof Invoice, val: string) {
-    onUpdate({ ...invoice, [field]: val });
+    const numericFields: (keyof Invoice)[] = ["subtotal", "tax", "total"];
+    const parsed = numericFields.includes(field)
+      ? parseFloat(val.replace(/[$,]/g, "")) || 0
+      : val;
+    onUpdate({ ...invoice, [field]: parsed });
   }
 
   const cards: { label: string; field: keyof Invoice; format?: (v: unknown) => string }[] = [

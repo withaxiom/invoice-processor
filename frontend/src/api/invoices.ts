@@ -9,8 +9,11 @@ export async function extractInvoice(file: File): Promise<ExtractResponse> {
     body: formData,
   });
 
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.error || `Request failed (${res.status})`);
+  }
   const data = await res.json();
-  if (data.error) throw new Error(data.error);
   return data;
 }
 
@@ -28,7 +31,8 @@ export async function extractBatch(
 
   if (!res.ok) throw new Error("Batch request failed");
 
-  const reader = res.body!.getReader();
+  if (!res.body) throw new Error("No response body for streaming");
+  const reader = res.body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
 
@@ -42,9 +46,13 @@ export async function extractBatch(
 
     for (const line of lines) {
       if (line.startsWith("data: ")) {
-        const event: BatchEvent = JSON.parse(line.slice(6));
-        onEvent(event);
-        if (event.done) return;
+        try {
+          const event: BatchEvent = JSON.parse(line.slice(6));
+          onEvent(event);
+          if (event.done) return;
+        } catch {
+          // Skip malformed SSE events
+        }
       }
     }
   }
