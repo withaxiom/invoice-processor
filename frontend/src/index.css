@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+@theme {
+  --color-axiom-green: #183A2B;
+  --color-axiom-navy: #08153B;
+  --color-axiom-gold: #C8A165;
+  --color-axiom-gold-light: #d4b175;
+  --color-axiom-bg: #0B0B0B;
+  --color-axiom-card: #111111;
+  --color-axiom-border: #222222;
+  --color-axiom-text: #E8E4DF;
+  --color-axiom-muted: #7A7570;
+  --color-axiom-error: #E74C3C;
+}
