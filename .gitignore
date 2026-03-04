@@ -20,3 +20,7 @@ test_invoices/
 .vscode/
 *.swp
 *.swo
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
