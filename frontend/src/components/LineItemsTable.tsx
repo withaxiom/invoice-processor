@@ -53,11 +53,13 @@ export function LineItemsTable({ invoice, onUpdate }: LineItemsTableProps) {
   function updateItem(idx: number, field: keyof LineItem, raw: string) {
     const items = [...invoice.line_items];
     const numericFields: (keyof LineItem)[] = ["quantity", "unit_price", "total"];
+    const item = { ...items[idx] };
     if (numericFields.includes(field)) {
-      (items[idx] as Record<string, unknown>)[field] = parseFloat(raw) || 0;
+      (item as unknown as Record<string, unknown>)[field] = parseFloat(raw) || 0;
     } else {
-      (items[idx] as Record<string, unknown>)[field] = raw;
+      (item as unknown as Record<string, unknown>)[field] = raw;
     }
+    items[idx] = item;
     onUpdate({ ...invoice, line_items: items });
   }
 
