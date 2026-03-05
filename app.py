@@ -111,17 +111,17 @@ Invoice text:
     warnings = []
     if data.get("line_items"):
         calculated_subtotal = sum(
-            item.get("total", 0) for item in data["line_items"]
+            (item.get("total") or 0) for item in data["line_items"]
         )
-        reported_subtotal = data.get("subtotal", 0) or 0
+        reported_subtotal = data.get("subtotal") or 0
         if reported_subtotal and abs(calculated_subtotal - reported_subtotal) > 0.02:
             warnings.append(
                 f"Line items sum to ${calculated_subtotal:.2f} but subtotal is ${reported_subtotal:.2f}"
             )
 
-    reported_total = data.get("total", 0) or 0
-    reported_subtotal = data.get("subtotal", 0) or 0
-    reported_tax = data.get("tax", 0) or 0
+    reported_total = data.get("total") or 0
+    reported_subtotal = data.get("subtotal") or 0
+    reported_tax = data.get("tax") or 0
     if reported_subtotal and reported_total:
         expected_total = reported_subtotal + reported_tax
         if abs(expected_total - reported_total) > 0.02:
