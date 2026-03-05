@@ -77,7 +77,7 @@ export function Layout({
       </div>
 
       <footer className="border-t border-slate-200 dark:border-axiom-border p-5 text-center text-xs text-slate-400 dark:text-axiom-muted">
-        AXIOM Collective &middot; Invoice Processor Demo &middot; Module 3 Proof of Competence
+        AXIOM Collective &middot; AI-Powered Invoice Processing &middot; Bilingual EN/ES
       </footer>
     </div>
   );

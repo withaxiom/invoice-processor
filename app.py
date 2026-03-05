@@ -21,6 +21,23 @@ app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB max upload
 
 UPLOAD_DIR = tempfile.mkdtemp()
 
+# ─── Simple rate limiting (in-memory, resets on restart) ────────────────────
+_rate_limit: dict[str, list[float]] = {}
+RATE_LIMIT_MAX = 10  # max requests per window
+RATE_LIMIT_WINDOW = 3600  # 1 hour
+
+def check_rate_limit() -> bool:
+    """Returns True if request is allowed, False if rate limited."""
+    ip = request.remote_addr or "unknown"
+    now = datetime.utcnow().timestamp()
+    hits = _rate_limit.get(ip, [])
+    hits = [t for t in hits if now - t < RATE_LIMIT_WINDOW]
+    if len(hits) >= RATE_LIMIT_MAX:
+        return False
+    hits.append(now)
+    _rate_limit[ip] = hits
+    return True
+
 # ─── Core extraction ────────────────────────────────────────────────────────
 
 def extract_text_from_pdf(pdf_path: str) -> str:
@@ -168,6 +185,9 @@ def serve_spa(path):
 
 @app.route("/api/extract", methods=["POST"])
 def extract():
+    if not check_rate_limit():
+        return jsonify({"error": "Rate limit exceeded. Try again later."}), 429
+
     if "file" not in request.files:
         return jsonify({"error": "No file uploaded"}), 400
 
@@ -208,6 +228,9 @@ def extract():
 @app.route("/api/extract/batch", methods=["POST"])
 def extract_batch():
     """Process multiple PDFs and stream results via SSE."""
+    if not check_rate_limit():
+        return jsonify({"error": "Rate limit exceeded. Try again later."}), 429
+
     files = request.files.getlist("files")
     if not files:
         return jsonify({"error": "No files uploaded"}), 400
@@ -251,6 +274,7 @@ def extract_batch():
 
 
 if __name__ == "__main__":
-    print("\n  AXIOM Invoice Processor")
-    print("  http://localhost:5001\n")
-    app.run(host="0.0.0.0", port=5001, debug=True)
+    port = int(os.environ.get("PORT", 5001))
+    print(f"\n  AXIOM Invoice Processor")
+    print(f"  http://localhost:{port}\n")
+    app.run(host="0.0.0.0", port=port, debug=True)
