@@ -129,6 +129,17 @@ Invoice text:
                 f"Subtotal (${reported_subtotal:.2f}) + Tax (${reported_tax:.2f}) = ${expected_total:.2f}, but total is ${reported_total:.2f}"
             )
 
+    # Check if this looks like an actual invoice
+    has_invoice_number = bool(data.get("invoice_number"))
+    has_total = bool(data.get("total"))
+    has_line_items = bool(data.get("line_items"))
+    if not (has_invoice_number or has_total or has_line_items):
+        warnings.insert(0,
+            "This document doesn't appear to be an invoice. "
+            "Results may be incomplete or inaccurate. "
+            "For best results, upload a PDF invoice, receipt, or purchase order."
+        )
+
     if warnings:
         data["_warnings"] = warnings
     data["_extracted_at"] = datetime.utcnow().isoformat() + "Z"
