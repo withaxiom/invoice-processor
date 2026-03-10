@@ -184,3 +184,16 @@ MIT
 ---
 
 Built with Claude API by **AXIOM Collective** — AI automation for businesses, en ingles y en espanol.
+
+## How to Sell This (AXIOM Notes)
+
+**Who it’s for:** operators who receive PDF invoices/receipts and waste time manually typing data into accounting tools.
+
+**Core promise:** “Turn messy PDFs into clean structured data in seconds — with human review.”
+
+**Pitch bullets:**
+- Faster data entry (minutes → seconds)
+- Fewer errors (line-item validation)
+- Export to CSV/JSON (feeds QuickBooks/Xero/Sheets next)
+
+**60–90s demo:** see `demos/README.md`.
