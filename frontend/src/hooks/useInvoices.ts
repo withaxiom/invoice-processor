@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import type { Invoice, StoredInvoice, BatchEvent } from "../types/invoice";
 import { extractInvoice, extractBatch } from "../api/invoices";
+import { DEMO_INVOICE, DEMO_CSV } from "../data/demoInvoice";
 
 const STORAGE_KEY = "axiom-invoice-history";
 
@@ -120,6 +121,24 @@ export function useInvoices() {
     [current]
   );
 
+  const loadDemo = useCallback(() => {
+    setStatus("processing");
+    setError(null);
+    // Simulate a brief processing delay for realism
+    setTimeout(() => {
+      const entry: StoredInvoice = {
+        id: crypto.randomUUID(),
+        filename: "demo_invoice.pdf",
+        invoice: { ...DEMO_INVOICE, _extracted_at: new Date().toISOString() },
+        csv: DEMO_CSV,
+        processedAt: new Date().toISOString(),
+      };
+      setCurrent(entry);
+      addToHistory(entry);
+      setStatus("done");
+    }, 1500);
+  }, [addToHistory]);
+
   const reset = useCallback(() => {
     setCurrent(null);
     setStatus("idle");
@@ -134,6 +153,7 @@ export function useInvoices() {
     error,
     batchProgress,
     processFiles,
+    loadDemo,
     selectInvoice,
     updateCurrentInvoice,
     reset,

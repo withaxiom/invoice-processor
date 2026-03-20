@@ -25,7 +25,7 @@ function EditableCell({
 
   if (editing) {
     return (
-      <td className={`px-4 py-2.5 border-b border-slate-100 dark:border-axiom-border ${align === "right" ? "text-right" : ""}`}>
+      <td className={`px-3 md:px-4 py-2.5 border-b border-slate-100 dark:border-axiom-border ${align === "right" ? "text-right" : ""}`}>
         <input
           className="w-full bg-transparent border-b border-axiom-gold outline-none text-sm text-slate-800 dark:text-white"
           style={{ textAlign: align || "left" }}
@@ -41,7 +41,7 @@ function EditableCell({
 
   return (
     <td
-      className={`px-4 py-2.5 border-b border-slate-100 dark:border-axiom-border text-sm cursor-pointer hover:text-axiom-gold transition-colors ${align === "right" ? "text-right" : ""}`}
+      className={`px-3 md:px-4 py-2.5 border-b border-slate-100 dark:border-axiom-border text-sm cursor-pointer hover:text-axiom-gold transition-colors ${align === "right" ? "text-right" : ""}`}
       onClick={() => { setDraft(value); setEditing(true); }}
     >
       {value}
@@ -68,39 +68,41 @@ export function LineItemsTable({ invoice, onUpdate }: LineItemsTableProps) {
 
   return (
     <div className="border border-slate-200 dark:border-axiom-border rounded-xl overflow-hidden mb-6">
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="bg-axiom-green text-white">
-            <th className="px-4 py-2.5 text-left text-[11px] uppercase tracking-wider">Description</th>
-            <th className="px-4 py-2.5 text-right text-[11px] uppercase tracking-wider">Qty</th>
-            <th className="px-4 py-2.5 text-right text-[11px] uppercase tracking-wider">Unit Price</th>
-            <th className="px-4 py-2.5 text-right text-[11px] uppercase tracking-wider">Total</th>
-          </tr>
-        </thead>
-        <tbody className="bg-white dark:bg-axiom-card">
-          {invoice.line_items.map((item, i) => (
-            <tr key={i}>
-              <EditableCell value={item.description || ""} onSave={(v) => updateItem(i, "description", v)} />
-              <EditableCell value={String(item.quantity ?? "")} align="right" onSave={(v) => updateItem(i, "quantity", v)} />
-              <EditableCell value={fmt(item.unit_price)} align="right" onSave={(v) => updateItem(i, "unit_price", v.replace("$", ""))} />
-              <EditableCell value={fmt(item.total)} align="right" onSave={(v) => updateItem(i, "total", v.replace("$", ""))} />
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse min-w-[480px]">
+          <thead>
+            <tr className="bg-axiom-green text-white">
+              <th className="px-3 md:px-4 py-2.5 text-left text-[11px] uppercase tracking-wider">Description</th>
+              <th className="px-3 md:px-4 py-2.5 text-right text-[11px] uppercase tracking-wider w-16">Qty</th>
+              <th className="px-3 md:px-4 py-2.5 text-right text-[11px] uppercase tracking-wider w-28">Unit Price</th>
+              <th className="px-3 md:px-4 py-2.5 text-right text-[11px] uppercase tracking-wider w-28">Total</th>
             </tr>
-          ))}
-          {/* Totals */}
-          <tr className="bg-axiom-gold/[0.06]">
-            <td colSpan={3} className="px-4 py-2.5 text-sm font-semibold text-axiom-gold">Subtotal</td>
-            <td className="px-4 py-2.5 text-right text-sm font-semibold text-axiom-gold">{fmt(invoice.subtotal)}</td>
-          </tr>
-          <tr className="bg-axiom-gold/[0.06]">
-            <td colSpan={3} className="px-4 py-2.5 text-sm font-semibold text-axiom-gold">Tax</td>
-            <td className="px-4 py-2.5 text-right text-sm font-semibold text-axiom-gold">{fmt(invoice.tax)}</td>
-          </tr>
-          <tr className="bg-axiom-gold/[0.06]">
-            <td colSpan={3} className="px-4 py-2.5 text-[15px] font-bold text-slate-800 dark:text-white">Total</td>
-            <td className="px-4 py-2.5 text-right text-[15px] font-bold text-slate-800 dark:text-white">{fmt(invoice.total)}</td>
-          </tr>
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="bg-white dark:bg-axiom-card">
+            {invoice.line_items.map((item, i) => (
+              <tr key={i} className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
+                <EditableCell value={item.description || ""} onSave={(v) => updateItem(i, "description", v)} />
+                <EditableCell value={String(item.quantity ?? "")} align="right" onSave={(v) => updateItem(i, "quantity", v)} />
+                <EditableCell value={fmt(item.unit_price)} align="right" onSave={(v) => updateItem(i, "unit_price", v.replace("$", ""))} />
+                <EditableCell value={fmt(item.total)} align="right" onSave={(v) => updateItem(i, "total", v.replace("$", ""))} />
+              </tr>
+            ))}
+            {/* Totals */}
+            <tr className="bg-axiom-gold/[0.04] border-t border-axiom-gold/20">
+              <td colSpan={3} className="px-3 md:px-4 py-2.5 text-sm text-slate-600 dark:text-axiom-muted">Subtotal</td>
+              <td className="px-3 md:px-4 py-2.5 text-right text-sm font-medium text-slate-700 dark:text-axiom-text">{fmt(invoice.subtotal)}</td>
+            </tr>
+            <tr className="bg-axiom-gold/[0.04]">
+              <td colSpan={3} className="px-3 md:px-4 py-2 text-sm text-slate-600 dark:text-axiom-muted">Tax</td>
+              <td className="px-3 md:px-4 py-2 text-right text-sm font-medium text-slate-700 dark:text-axiom-text">{fmt(invoice.tax)}</td>
+            </tr>
+            <tr className="bg-axiom-gold/[0.06] border-t border-axiom-gold/20">
+              <td colSpan={3} className="px-3 md:px-4 py-3 text-[15px] font-bold text-slate-800 dark:text-white">Total</td>
+              <td className="px-3 md:px-4 py-3 text-right text-[15px] font-bold text-axiom-gold">{fmt(invoice.total)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
